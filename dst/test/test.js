@@ -12,6 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const assert = require("assert");
 const index_1 = require("../src/index");
 const log_1 = require("../src/test/log");
+// 防止 unit test 沒有寫對而漏掉 rejection 錯誤
+process.on('unhandledRejection', e => {
+    console.log('unhandledRejection occurred !!', e);
+});
 const log = new log_1.LogSystem();
 let errorWhen = null;
 let doneWhen = null;

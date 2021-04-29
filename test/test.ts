@@ -4,6 +4,11 @@ import { LogSystem } from '../src/test/log';
 
 declare const describe, it, afterEach;
 
+// 防止 unit test 沒有寫對而漏掉 rejection 錯誤
+process.on('unhandledRejection', e => {
+    console.log('unhandledRejection occurred !!', e);
+});
+
 const log = new LogSystem();
 
 let errorWhen: number | null = null;
