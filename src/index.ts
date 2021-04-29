@@ -1,3 +1,4 @@
+import * as Emitter from 'events';
 import { range, zip } from 'ramda';
 
 interface RedoLogSystem {
@@ -30,9 +31,33 @@ export class Resumeable <Init, Output> {
         return new Resumeable(this.log, this.steps.concat(fn));
     }
 
-    fire (process: string, param: Init) {
-        this.log.push(process, param);
-        return this.exec(process, [ param ]);
+    static phase = {
+        commitment: 'commitment',
+        execution: 'execution',
+        fail: 'fail',
+    };
+
+    fire (process: string, param: Init): FireEmitter {
+        try {
+            this.log.push(process, param);
+        } catch (error) {
+            const e = new FireEmitter(Promise.reject(error), Promise.reject(new Error('commit error')));
+            setTimeout(() => {
+                e.emit(Resumeable.phase.fail, error);
+            }, 0);
+            return e;
+        }
+        // 因為 exec 有加上 async 關鍵字，他的錯誤一定是透過 promise.reject 傳出來
+        // 所以不需要再用 try catch 來處理
+        const res = this.exec(process, [ param ]);
+        const e = new FireEmitter(Promise.resolve(process), res);
+        setTimeout(() => {
+            e.emit(Resumeable.phase.commitment, process);
+            res
+            .then(() => e.emit(Resumeable.phase.execution))
+            .catch(error => e.emit(Resumeable.phase.fail, error));
+        }, 0);
+        return e;
     }
 
     resume (process: string) {
@@ -59,6 +84,15 @@ export class Resumeable <Init, Output> {
         }, Promise.resolve(logs[0]));
 
         this.log.clear(process);
+    }
+}
+
+class FireEmitter extends Emitter {
+    constructor (
+        readonly commitment: Promise<string>,
+        readonly execution: Promise<void>,
+    ) {
+        super();
     }
 }
 

@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Resumeable = void 0;
+const Emitter = require("events");
 const ramda_1 = require("ramda");
 class Resumeable {
     constructor(log, steps) {
@@ -23,8 +24,27 @@ class Resumeable {
         return new Resumeable(this.log, this.steps.concat(fn));
     }
     fire(process, param) {
-        this.log.push(process, param);
-        return this.exec(process, [param]);
+        try {
+            this.log.push(process, param);
+        }
+        catch (error) {
+            const e = new FireEmitter(Promise.reject(error), Promise.reject(new Error('commit error')));
+            setTimeout(() => {
+                e.emit(Resumeable.phase.fail, error);
+            }, 0);
+            return e;
+        }
+        // 因為 exec 有加上 async 關鍵字，他的錯誤一定是透過 promise.reject 傳出來
+        // 所以不需要再用 try catch 來處理
+        const res = this.exec(process, [param]);
+        const e = new FireEmitter(Promise.resolve(process), res);
+        setTimeout(() => {
+            e.emit(Resumeable.phase.commitment, process);
+            res
+                .then(() => e.emit(Resumeable.phase.execution))
+                .catch(error => e.emit(Resumeable.phase.fail, error));
+        }, 0);
+        return e;
     }
     resume(process) {
         return this.exec(process, this.log.load(process));
@@ -54,6 +74,18 @@ class Resumeable {
     }
 }
 exports.Resumeable = Resumeable;
+Resumeable.phase = {
+    commitment: 'commitment',
+    execution: 'execution',
+    fail: 'fail',
+};
+class FireEmitter extends Emitter {
+    constructor(commitment, execution) {
+        super();
+        this.commitment = commitment;
+        this.execution = execution;
+    }
+}
 class Done {
 }
 function paddingRight(list, size, defaultValue) {

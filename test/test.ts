@@ -46,19 +46,19 @@ describe('正常流程', () => {
     afterEach(reset);
 
     it('走完全程', async () => {
-        await proc.fire('1', 1);
+        await proc.fire('1', 1).execution;
         assert.strictEqual(JSON.stringify(execState), JSON.stringify([1,2,3]));
     });
 
     it('第 1 步完成', async () => {
         doneWhen = 1;
-        await proc.fire('1', 1);
+        await proc.fire('1', 1).execution;
         assert.strictEqual(JSON.stringify(execState), JSON.stringify([]));
     });
 
     it('第 2 步完成', async () => {
         doneWhen = 2;
-        await proc.fire('1', 1);
+        await proc.fire('1', 1).execution;
         assert.strictEqual(JSON.stringify(execState), JSON.stringify([1]));
     });
 });
@@ -68,19 +68,19 @@ describe('失敗流程', () => {
 
     it('第 1 步失敗', async () => {
         errorWhen = 1;
-        await assert.rejects(() => proc.fire('1', 1), error => error === `錯誤: (1)`);
+        await assert.rejects(() => proc.fire('1', 1).execution, error => error === `錯誤: (1)`);
         assert.strictEqual(JSON.stringify(execState), JSON.stringify([]));
     });
 
     it('第 2 步失敗', async () => {
         errorWhen = 2;
-        await assert.rejects(() => proc.fire('1', 1), error => error === `錯誤: (2)`);
+        await assert.rejects(() => proc.fire('1', 1).execution, error => error === `錯誤: (2)`);
         assert.strictEqual(JSON.stringify(execState), JSON.stringify([1]));
     });
 
     it('resume', async () => {
         errorWhen = 2;
-        await assert.rejects(() => proc.fire('1', 1), error => error === `錯誤: (2)`);
+        await assert.rejects(() => proc.fire('1', 1).execution, error => error === `錯誤: (2)`);
         assert.strictEqual(JSON.stringify(execState), JSON.stringify([1]));
 
         // try again
