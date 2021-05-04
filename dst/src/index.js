@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Resumeable = void 0;
-const Emitter = require("events");
+const events_1 = require("events");
 const ramda_1 = require("ramda");
 class Resumeable {
     constructor(log, steps) {
@@ -79,7 +79,7 @@ Resumeable.phase = {
     execution: 'execution',
     fail: 'fail',
 };
-class FireEmitter extends Emitter {
+class FireEmitter extends events_1.EventEmitter {
     constructor(commitment, execution) {
         super();
         this.commitment = commitment;

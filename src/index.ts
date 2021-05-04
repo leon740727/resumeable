@@ -1,4 +1,4 @@
-import * as Emitter from 'events';
+import { EventEmitter } from 'events';
 import { range, zip } from 'ramda';
 
 interface RedoLogSystem {
@@ -87,7 +87,7 @@ export class Resumeable <Init, Output> {
     }
 }
 
-class FireEmitter extends Emitter {
+class FireEmitter extends EventEmitter {
     constructor (
         readonly commitment: Promise<string>,
         readonly execution: Promise<void>,

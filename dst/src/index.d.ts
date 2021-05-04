@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import * as Emitter from 'events';
+import { EventEmitter } from 'events';
 interface RedoLogSystem {
     load(process: string): any[];
     push(process: string, log: any): any;
@@ -24,7 +24,7 @@ export declare class Resumeable<Init, Output> {
     resume(process: string): Promise<void>;
     private exec;
 }
-declare class FireEmitter extends Emitter {
+declare class FireEmitter extends EventEmitter {
     readonly commitment: Promise<string>;
     readonly execution: Promise<void>;
     constructor(commitment: Promise<string>, execution: Promise<void>);
