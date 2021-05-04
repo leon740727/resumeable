@@ -39,6 +39,9 @@ export class Resumeable <Init, Output> {
 
     fire (process: string, param: Init): FireEmitter {
         try {
+            if (this.log.load(process).length > 0) {
+                throw new DuplicatedProcessError();
+            }
             this.log.push(process, param);
         } catch (error) {
             const e = new FireEmitter(Promise.reject(error), Promise.reject(new Error('commit error')));
@@ -97,6 +100,13 @@ class FireEmitter extends EventEmitter {
 }
 
 class Done {}
+
+class DuplicatedProcessError extends Error {
+    constructor () {
+        super();
+        this.message = 'duplicated process';
+    }
+}
 
 function paddingRight <T> (list: T[], size: number, defaultValue: T) {
     if (list.length < size) {

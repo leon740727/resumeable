@@ -25,6 +25,9 @@ class Resumeable {
     }
     fire(process, param) {
         try {
+            if (this.log.load(process).length > 0) {
+                throw new DuplicatedProcessError();
+            }
             this.log.push(process, param);
         }
         catch (error) {
@@ -87,6 +90,12 @@ class FireEmitter extends events_1.EventEmitter {
     }
 }
 class Done {
+}
+class DuplicatedProcessError extends Error {
+    constructor() {
+        super();
+        this.message = 'duplicated process';
+    }
 }
 function paddingRight(list, size, defaultValue) {
     if (list.length < size) {
